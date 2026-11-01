@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="A kid-friendly Harry Potter scavenger hunt walk through London, from Buckingham Palace to Leadenhall Market.">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Wizard's London Hunt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Nunito:wght@400;600;800&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a field guide. Sticky score bar, footprint map, then numbered stop cards grouped into four walking legs, then optional extras. */
+:root{
+  --bg:#eceee6; --paper:#fafbf6; --ink:#1c2822; --muted:#56655d; --line:#cfd6cc;
+  --gold:#9c700c; --gold-soft:#f3e5b8; --film:#a2232e; --film-soft:#f6dfe0;
+  --land:#24456f; --land-soft:#dfe7f2; --tiny:#7a5d06; --tiny-soft:#f1e8c8;
+  --quest:#2f6b4f; --quest-soft:#dcebe2; --play:#7a3b8f; --play-soft:#efe1f4;
+  --river:#b9cfd8; --route:#7b8a82;
+  --f-display:"IM Fell English SC", Georgia, "Times New Roman", serif;
+  --f-body:"Nunito", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#101814; --paper:#17221d; --ink:#e6ebe5; --muted:#9caaa1; --line:#2b3a33;
+  --gold:#e3b84c; --gold-soft:#3a3016; --film:#ef7880; --film-soft:#3b1d20;
+  --land:#93b3e6; --land-soft:#1c2840; --tiny:#e3b84c; --tiny-soft:#352d14;
+  --quest:#7fd0a6; --quest-soft:#173328; --play:#d29be6; --play-soft:#2f1d38;
+  --river:#22414d; --route:#6f8178; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101814; --paper:#17221d; --ink:#e6ebe5; --muted:#9caaa1; --line:#2b3a33;
+  --gold:#e3b84c; --gold-soft:#3a3016; --film:#ef7880; --film-soft:#3b1d20;
+  --land:#93b3e6; --land-soft:#1c2840; --tiny:#e3b84c; --tiny-soft:#352d14;
+  --quest:#7fd0a6; --quest-soft:#173328; --play:#d29be6; --play-soft:#2f1d38;
+  --river:#22414d; --route:#6f8178; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--paper)}
+.wrap{max-width:760px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+a{color:inherit}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;text-wrap:balance;margin:0;line-height:1.1}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);border-bottom:1px solid var(--line)}
+.bar .wrap{display:flex;align-items:center;gap:14px;padding-block:10px}
+.bar .rank{font-family:var(--f-display);font-size:1.15rem;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar .pts{font-family:var(--f-mono);font-size:.85rem;color:var(--muted);white-space:nowrap}
+.meter{height:4px;background:var(--line)}
+.meter i{display:block;height:100%;width:0;background:var(--gold);transition:width .4s}
+
+header.intro{padding-block:34px 18px}
+.eyebrow{font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:800}
+header.intro h1{font-size:clamp(2.4rem,9vw,3.6rem);margin:8px 0 12px}
+header.intro p{max-width:62ch;margin:0 0 10px}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:18px 0 6px}
+.fact{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.fact b{display:block;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.fact span{font-weight:800}
+.key{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:.74rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:99px;justify-self:start}
+.tag::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.t-film{color:var(--film);background:var(--film-soft)}
+.t-land{color:var(--land);background:var(--land-soft)}
+.t-tiny{color:var(--tiny);background:var(--tiny-soft)}
+.t-play{color:var(--play);background:var(--play-soft)}
+.t-quest{color:var(--quest);background:var(--quest-soft)}
+
+.mapbox{scroll-margin-top:70px;background:var(--paper);border:1px solid var(--line);border-radius:12px;margin:18px 0 6px;overflow-x:auto}
+.mapbox svg{display:block;width:100%;min-width:620px;height:auto}
+.mapnote{font-size:.82rem;color:var(--muted);margin:4px 2px 0}
+.dot{cursor:pointer}
+.dot circle{fill:var(--paper);stroke:var(--ink);stroke-width:2}
+.dot text{font-family:var(--f-mono);font-size:13px;fill:var(--ink);text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.dot.found circle{fill:var(--gold);stroke:var(--gold)}
+.dot.found text{fill:var(--paper)}
+.dot:focus-visible circle{stroke-width:4}
+
+section{padding-block:22px}
+.roam{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:12px}
+.roam label{display:flex;gap:10px;align-items:flex-start;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
+.roam input{width:22px;height:22px;accent-color:var(--gold);flex:none;margin-top:2px}
+.roam small{display:block;color:var(--muted);font-size:.84rem}
+
+.leg{margin-top:26px}
+.leghead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 16px;border-top:2px solid var(--ink);padding-top:12px}
+.leghead h2{font-size:1.75rem}
+.leghead .mono{font-size:.8rem;color:var(--muted)}
+.legnote{color:var(--muted);font-size:.92rem;margin:6px 0 0}
+.leglink{display:inline-block;margin-top:8px;font-weight:800;font-size:.92rem}
+.cards{display:grid;gap:14px;margin-top:14px}
+.card{position:relative;display:grid;grid-template-columns:52px 1fr;gap:4px 14px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:16px 16px 16px 12px;scroll-margin-top:80px}
+.num{font-family:var(--f-display);font-size:2.3rem;line-height:1;text-align:center;color:var(--muted)}
+.body{min-width:0;display:grid;gap:10px}
+.card h3{font-size:1.45rem;padding-right:64px}
+.box{border-radius:8px;padding:9px 11px}
+.box > b:first-child{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;display:block;margin-bottom:2px}
+.mission{background:var(--bg);font-weight:600}
+.mission > b:first-child{color:var(--gold)}
+.quest{background:var(--quest-soft)}
+.quest > b:first-child{color:var(--quest)}
+.quest details{margin-top:6px}
+.quest summary{cursor:pointer;font-weight:800;color:var(--quest);font-size:.9rem}
+.quest summary:focus-visible{outline:2px solid var(--quest);outline-offset:2px;border-radius:4px}
+.quest details p{margin-top:4px}
+.card p{margin:0}
+.film{border-left:3px solid var(--film);padding-left:10px}
+.film b{color:var(--film)}
+.trivia{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+.trivia li{position:relative;padding-left:20px}
+.trivia li::before{content:"✦";position:absolute;left:2px;top:0;color:var(--land);font-size:.8rem}
+.lbl{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--land);font-weight:800;margin-bottom:-4px}
+.links{display:flex;flex-wrap:wrap;gap:8px}
+.links a{font-size:.84rem;font-weight:800;text-decoration:none;border:1px solid var(--line);border-radius:99px;padding:5px 11px;background:var(--bg)}
+.links a:hover,.links a:focus-visible{border-color:var(--ink)}
+.found-btn{font:800 .95rem var(--f-body);padding:9px 16px;border-radius:99px;border:2px solid var(--gold);background:transparent;color:var(--gold);cursor:pointer}
+.found-btn:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.card.found{border-color:var(--gold)}
+.card.found .num{color:var(--gold)}
+.card.found .found-btn{background:var(--gold);color:var(--paper)}
+.stamp{position:absolute;top:12px;right:12px;font-family:var(--f-display);font-size:.95rem;color:var(--gold);border:2px solid var(--gold);border-radius:6px;padding:1px 8px;transform:rotate(6deg);opacity:0;transition:opacity .25s}
+.card.found .stamp{opacity:1}
+.note{font-size:.84rem;color:var(--muted)}
+.extras .leghead{border-top-style:dashed}
+
+.finale{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px;margin-top:26px}
+.finale h2{font-size:1.6rem;margin-bottom:6px}
+.reset{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.reset button{font:700 .88rem var(--f-body);padding:7px 14px;border-radius:99px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.reset .danger{border-color:var(--film);color:var(--film)}
+footer{padding-block:24px 40px;color:var(--muted);font-size:.84rem}
+@media (max-width:440px){.card{grid-template-columns:1fr}.num{text-align:left;font-size:1.6rem}.stamp{top:14px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+</head>
+<body>
+<div class="bar">
+  <div class="wrap">
+    <div class="rank" id="rank">First-Year Explorer</div>
+    <div class="pts mono"><span id="foundCount">0</span>/<span id="totalCount">24</span> stops · <span id="points">0</span> pts</div>
+  </div>
+  <div class="meter"><i id="meter"></i></div>
+</div>
+
+<div class="wrap">
+  <header class="intro">
+    <div class="eyebrow">A self-guided scavenger hunt on foot</div>
+    <h1>Wizard's London Hunt</h1>
+    <p>Follow the footprints from Buckingham Palace to the real Diagon Alley street. At every stop: find it, do the <b>mission</b>, try the <b>quest</b>, read the trivia, then tap <b>We found it!</b> to earn house points.</p>
+    <p>Each stop has three buttons: <b>Directions</b> opens Google Maps, <b>See it now</b> opens Street View so you know what to look for, and <b>Film scene</b> shows pictures of that moment in the movie.</p>
+    <div class="facts">
+      <div class="fact"><b>Start</b><span>Victoria Memorial, outside Buckingham Palace</span></div>
+      <div class="fact"><b>Nearest tube</b><span>Green Park or St James's Park</span></div>
+      <div class="fact"><b>Finish</b><span>Leadenhall Market (Bank or Monument tube)</span></div>
+      <div class="fact"><b>Distance</b><span class="mono">≈ 10 km · 6 miles</span></div>
+      <div class="fact"><b>Time</b><span>6 to 7 hours with play breaks</span></div>
+    </div>
+    <div class="key">
+      <span class="tag t-film">Wizarding film spot · 15 pts</span>
+      <span class="tag t-land">London landmark · 10 pts</span>
+      <span class="tag t-tiny">Tiny treasure · 10 pts</span>
+      <span class="tag t-play">Play break · 10 pts</span>
+      <span class="tag t-quest">Quest done · +5 pts</span>
+    </div>
+  </header>
+
+  <div class="mapbox" id="map-top" aria-label="Map of the walking route with numbered stops">
+    <svg id="map" viewBox="0 0 1000 400" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+  <p class="mapnote">Tap a number to jump to that stop. Gold dots are ones you've found. The map is a sketch, so use Directions for the exact streets.</p>
+
+  <section>
+    <h2 style="font-size:1.6rem">Keep your eyes peeled all day</h2>
+    <p class="note" style="margin:4px 0 0">These can pop up anywhere along the walk. 5 points each.</p>
+    <div class="roam" id="roam"></div>
+  </section>
+
+  <div id="legs"></div>
+
+  <section class="leg extras">
+    <div class="leghead"><h2>Optional extras</h2><span class="mono">Bonus points, not counted in the 24</span></div>
+    <p class="legnote">Only if you have time and energy. The first two are a few minutes' walk north of Leicester Square (stop 12). Platform 9¾ is a tube ride from the finish.</p>
+    <div class="cards" id="extras"></div>
+  </section>
+
+  <div class="finale">
+    <div class="reset">
+      <button type="button" id="resetBtn">Start the hunt again</button>
+      <span id="confirmBox" hidden>Clear every tick? <button type="button" class="danger" id="yesReset">Yes, clear</button> <button type="button" id="noReset">Keep them</button></span>
+    </div>
+  </div>
+
+  <footer>
+    Opening times change. St Paul's sightseeing is Monday to Saturday (Sunday is for services). House of MinaLima and Borough Market have set hours, so check before you go. Leadenhall Market's walkways are open even when its shops are closed. Your ticks are saved on this phone only.
+  </footer>
+</div>
+
+<script>
+const S = [
+ // ---------- Leg 1 ----------
+ {id:"palace",leg:0,t:"land",name:"Buckingham Palace",lat:51.5016,lng:-0.1406,q:"Victoria Memorial London",
+  mission:"Look at the flag on the very top. A colourful flag with lions means the King is home. The red, white and blue Union Flag means he's out.",
+  quest:"Guard challenge: stand perfectly still like a royal guard while a grown-up counts to 30. Anyone who giggles has to waddle like a penguin for 10 steps.",
+  fact:"This is the King's London home. It has 775 rooms, including 78 bathrooms! The guards' tall black hats are called bearskins.",
+  trivia:["Queen Victoria was the first king or queen to live here, back in 1837.","The palace is like a mini town. It has its own post office and police station.","The road leading here, The Mall, is coloured red on purpose, so it looks like a giant red carpet."]},
+ {id:"playstj",leg:0,t:"play",name:"Play Break: St James's Park Playground",lat:51.5015,lng:-0.1368,q:"St James's Park Playground Birdcage Walk London",
+  mission:"Find the giant wooden spider and climb it! Count its legs. Does it have the right number for a real spider?",
+  quest:"Aragog tag: whoever is 'it' has to scuttle like Hagrid's giant spider. Then a riddle: Ron hates spiders. How many legs do 3 spiders have altogether?",answer:"24 legs! Every spider has 8. (Ron would run away from all of them.)",
+  fact:"This playground is at the palace end of the park, on Birdcage Walk. It has sand to dig in, a little bridge, swings and musical chimes you can play. There are toilets and a café nearby, so it's a good time for a snack.",
+  trivia:["Spiders aren't insects. Spiders have 8 legs and insects have 6.","Birdcage Walk is named after King Charles II's royal birdcages (called aviaries) that used to line this road.","The little cottage on the lake's Duck Island was built in 1840 for the park's bird keeper."]},
+ {id:"pelicans",leg:0,t:"tiny",name:"The Pelicans of St James's Park",lat:51.5031,lng:-0.1318,q:"Pelican Rock St James's Park London",
+  mission:"Count the pelicans. Then stand on the Blue Bridge and look both ways: the palace one way, fairy-tale towers the other.",
+  quest:"Riddle: what has a big bill but never pays it?",answer:"A pelican! (A bird's beak is also called a bill.)",
+  fact:"Pelicans have lived in this park for over 350 years. The first ones were a present to King Charles II from Russia. Keepers feed them fish every afternoon around 2:30. Hagrid would love them.",
+  trivia:["This is the oldest of London's Royal Parks.","About 400 years ago, King James I kept a mini zoo here, with camels and crocodiles!"]},
+ {id:"bigben",leg:0,t:"film",name:"Big Ben & Westminster Station",lat:51.5009,lng:-0.1248,q:"Westminster Station London",
+  mission:"Wait for the bells. Big Ben's clock chimes every 15 minutes. Then peek down the steps into Westminster tube station.",
+  quest:"Clock puzzle: the clock keepers put old penny coins on the giant pendulum to fix the time. One penny makes the clock 0.4 seconds faster each day. How many pennies make it 2 seconds faster?",answer:"5 pennies. (5 × 0.4 = 2 seconds.)",
+  film:"<i>Order of the Phoenix</i>: Mr Weasley takes Harry through this station on the way to his trial, and gets in a muddle with the ticket gates. Later, the Order fly on broomsticks along the river right past these towers.",
+  img:"Harry Potter Order of the Phoenix Westminster station Mr Weasley",
+  fact:"Big Ben is actually the name of the giant bell, not the tower. The bell weighs about as much as two elephants.",
+  trivia:["The tower's real name is the Elizabeth Tower, named after Queen Elizabeth II.","The building next to it is the Houses of Parliament, where the country's laws are made. It has over 1,000 rooms."]},
+ {id:"jubilee",leg:0,t:"play",name:"Play Break: Jubilee Gardens Playground",lat:51.5038,lng:-0.1190,q:"Jubilee Gardens Playground London",
+  mission:"Cross Westminster Bridge to the playground beside the London Eye. Climb to the highest point and wave at a pod!",
+  quest:"Pod puzzle: the London Eye has 32 pods, but they're numbered all the way up to 33. Which number is missing, and why?",answer:"Number 13 is skipped, because some people think 13 is unlucky. Even wizards might agree!",
+  fact:"Over half a million children play here every year, which makes it one of the busiest playgrounds in London. It has tall climbing frames and wobbly rope bridges.",
+  trivia:["The London Eye is 135 metres tall and one full spin takes about 30 minutes. It moves so slowly that people step on while it's turning.","Each pod can hold 25 people. That's a whole class!","Westminster Bridge is painted green to match the seats in the House of Commons inside Parliament."]},
+ {id:"ministry",leg:0,t:"film",name:"Ministry of Magic Entrance",lat:51.5063,lng:-0.1262,q:"Great Scotland Yard London",
+  mission:"Stand on Great Scotland Yard street and imagine a red phone box sinking into the ground.",
+  quest:"Phone code: on a phone keypad, 2=ABC, 3=DEF, 4=GHI, 5=JKL, 6=MNO, 7=PQRS, 8=TUV, 9=WXYZ. That's why 62442 spells MAGIC. What does 4-2-7-7-9 spell? And what number spells OWL?",answer:"4-2-7-7-9 spells HARRY. OWL is 6-9-5.",
+  film:"<i>Order of the Phoenix</i>: Mr Weasley and Harry step into a red phone box here, dial 62442 and the whole box sinks down to the Ministry of Magic.",
+  img:"Harry Potter Order of the Phoenix phone box Ministry of Magic entrance",
+  fact:"In the books, the Ministry of Magic is hidden underneath Whitehall. In real life, Whitehall is the street full of Britain's government offices. Sneaky!",
+  trivia:["London's police are nicknamed 'Scotland Yard' because their first headquarters, in 1829, had a back door onto this very street."]},
+ {id:"horseguards",leg:0,t:"land",name:"Horse Guards",lat:51.5049,lng:-0.1272,q:"Horse Guards Whitehall London",
+  mission:"Find a soldier on horseback in a little stone hut. How still can you stand compared to them?",
+  quest:"Uniform detective: red jacket with a white feather plume means the Life Guards. Blue jacket with a red plume means the Blues and Royals. Which team is on duty today?",
+  fact:"Soldiers on horses guard this gate from 10am to 4pm. They are not allowed to move or chat. A sign warns that the horses may kick or bite, so look but don't touch!",
+  trivia:["The guard changes every day at 11am (10am on Sundays), with lots of shiny boots and trumpets.","These soldiers are part of the King's Household Cavalry, which has guarded kings and queens for over 350 years."]},
+ {id:"policebox",leg:0,t:"tiny",name:"Britain's Smallest Police Station",lat:51.5075,lng:-0.1277,q:"Smallest Police Station Trafalgar Square",
+  mission:"In the south-east corner of Trafalgar Square, find a round stone pillar with a little door and a lamp on top.",
+  quest:"Guess how many kids could squeeze inside. Then hug the pillar together: how many of you does it take to reach all the way around?",
+  fact:"Built around 1926, it fit just one police officer, who could watch over the square. If they needed help, the lamp on top would flash. Today it's used as a broom cupboard!",
+  trivia:["British police officers are nicknamed 'Bobbies' after Sir Robert (Bobby) Peel, who started London's police force."]},
+ {id:"trafalgar",leg:0,t:"land",name:"Trafalgar Square Lions",lat:51.5078,lng:-0.1280,q:"Nelson's Column London",
+  mission:"Find all four giant lions. Then find the 'Fourth Plinth', a stone block in one corner with modern art on top. What is it today?",
+  quest:"Paw maths: 4 lions with 4 paws each. Add Nelson's 2 feet on top. How many feet and paws altogether?",answer:"18. (16 lion paws + 2 Nelson feet.)",
+  fact:"Admiral Nelson stands on top of a column about as tall as 11 double-decker buses stacked up. The art on the Fourth Plinth changes every couple of years.",
+  trivia:["The square is named after the Battle of Trafalgar in 1805, a famous sea battle Nelson won.","Every December, Norway sends a giant Christmas tree here as a thank-you for Britain's help in World War II.","Road signs that say 'London 50 miles' measure to a spot right here, behind the statue of King Charles I on horseback."]},
+ {id:"nose",leg:0,t:"tiny",name:"The Secret Nose",lat:51.5068,lng:-0.1283,q:"Admiralty Arch London",
+  mission:"Walk under Admiralty Arch. Look for a small nose poking out of the inside wall of the arch nearest Trafalgar Square, just above head height.",
+  quest:"Wizard wish: if you can reach, touch the nose and make a wish. Then everyone has to say their wish backwards. (Snitch becomes 'Hctins'!)",
+  fact:"An artist secretly stuck noses on London buildings in the 1990s. A legend says soldiers riding through give this one a rub for luck.",
+  trivia:["Admiralty Arch was built in 1912 in memory of Queen Victoria.","The big middle gate only opens for the King and royal parades."]},
+ // ---------- Leg 2 ----------
+ {id:"piccadilly",leg:1,t:"film",name:"Piccadilly Circus",lat:51.5101,lng:-0.1342,q:"Piccadilly Circus London",
+  mission:"Find the winged archer statue on top of the fountain. Which way is he aiming?",
+  quest:"Screen spotting race: on the giant screens, who can spot an animal, something to eat and something red first?",
+  film:"<i>Deathly Hallows Part 1</i>: when Death Eaters crash Bill and Fleur's wedding, Hermione apparates the trio to Shaftesbury Avenue, right here. They land in traffic and a double-decker bus nearly squashes them.",
+  img:"Harry Potter Deathly Hallows Shaftesbury Avenue bus Piccadilly scene",
+  fact:"Everyone calls the statue Eros, but he's really meant to be his brother Anteros. Glowing signs have lit up this corner for over 100 years.",
+  trivia:["'Circus' here means a round meeting place of roads. No clowns!","The name comes from 'piccadills', frilly collars sold by a tailor who built a house here in the 1600s."]},
+ {id:"leicester",leg:1,t:"film",name:"Harry on a Broomstick",lat:51.5103,lng:-0.1301,q:"Leicester Square London",
+  mission:"Hunt around Leicester Square for a bronze statue of Harry flying on his Nimbus 2000.",
+  quest:"Movie statue bingo: this square has statues of other film characters too. How many can you find and name? (Look for a bear with a hat!)",
+  film:"The square is famous for film premieres. Many Harry Potter premieres happened here, starting with <i>Philosopher's Stone</i> in 2001, with the actors walking the red carpet.",
+  img:"Harry Potter Philosopher's Stone Quidditch Nimbus 2000 scene",
+  fact:"Harry was added to the 'Scenes in the Square' statue trail in 2020. He's caught mid-Quidditch match, chasing the Snitch.",
+  trivia:["Leicester Square has some of London's biggest cinemas, and stars often walk red carpets here.","Long ago this was a spot for duels and fairs. Now it's for movies and ice cream."]},
+ {id:"cecil",leg:1,t:"film",name:"Cecil Court",lat:51.5105,lng:-0.1274,q:"Cecil Court London",
+  mission:"Walk the whole lane. Find a shop window with old maps, very old books, or something that belongs in a wizard's shop.",
+  quest:"Spell-maker: pick something you see in a window and invent a Latin-ish spell for it, like 'Mappus Revealio!' Everyone votes for the best one.",
+  film:"Lots of fans say this lane of old shops, with painted shopfronts and hanging signs, inspired Diagon Alley. In the books, the Leaky Cauldron is on Charing Cross Road, right at the end of this lane.",
+  img:"Diagon Alley Harry Potter Philosopher's Stone scene",
+  fact:"In 1764, eight-year-old Mozart stayed on this street with his family and played music for London.",
+  trivia:["Charing Cross Road, at the end of the lane, has been London's bookshop street for over 100 years."]},
+ {id:"goodwins",leg:1,t:"tiny",name:"Goodwin's Court",lat:51.5111,lng:-0.1262,q:"Goodwin's Court London",
+  mission:"Find the tiny alley off St Martin's Lane. Count the old gas lamps.",
+  quest:"Lamplighter maths: long ago, a lamplighter lit every lamp by hand every single night. How many times would one lamp be lit in a year?",answer:"365 times (366 in a leap year).",
+  fact:"This skinny alley still has curved shop windows from over 300 years ago and real gas lamps. It looks like Knockturn Alley, the spooky street next to Diagon Alley.",
+  trivia:["Before electricity, lamplighters walked the streets with long poles to light every lamp at sunset.","A few streets in London are still lit by gas lamps today."]},
+ {id:"covent",leg:1,t:"land",name:"Covent Garden",lat:51.5117,lng:-0.1231,q:"Covent Garden Piazza London",
+  mission:"Watch a street performer. Did they do any 'magic'?",
+  quest:"Your turn to perform: everyone does a 10-second magic trick, joke or dance. Grown-ups have to join in!",
+  fact:"Covent Garden used to be London's fruit and vegetable market. The very first Punch and Judy puppet show in England was recorded here in 1662.",
+  trivia:["'Covent' comes from 'convent'. Monks grew vegetables in a garden here 800 years ago.","The London Transport Museum is in the corner of the square, full of old buses and tube trains."]},
+ // ---------- Leg 3 ----------
+ {id:"gringotts",leg:2,t:"film",name:"Gringotts Bank (Australia House)",lat:51.5129,lng:-0.1170,q:"Australia House Strand London",
+  mission:"Look up at the top corner of the building for a statue of the sun god driving his horses across the sky.",
+  quest:"Vault number hunt: Harry's vault at Gringotts is number 687. Add up its digits (6 + 8 + 7). Now find a door number on the street whose digits add up to the same!",answer:"6 + 8 + 7 = 21. Door numbers like 993, 579 or 489 would work.",
+  film:"<i>Philosopher's Stone</i> and <i>Deathly Hallows Part 2</i>: the inside of this building is the Gringotts banking hall, with goblins at tall desks and huge chandeliers.",
+  img:"Gringotts bank hall goblins Harry Potter Philosopher's Stone",
+  fact:"It's the office of Australia's government in London, so you can't go in. The inside is covered in shiny marble shipped all the way from Australia.",
+  trivia:["'Strand' means shore. This road used to run along the edge of the river before the riverbank was built out."]},
+ {id:"dragon",leg:2,t:"tiny",name:"The Temple Bar Dragon",lat:51.5136,lng:-0.1123,q:"Temple Bar Memorial Fleet Street London",
+  mission:"In the middle of the road, find the stone pillar with a fierce dragon on top.",
+  quest:"Dragon count: keep counting every dragon you spot (on posts, signs and lamps) all the way to St Paul's. Biggest count wins.",
+  fact:"This dragon marks the border of the City of London. Dragons guard every road into the City. Remember the dragon guarding the vaults at Gringotts? This one is friendlier.",
+  trivia:["The City of London is a tiny city inside London, only about one square mile. People call it 'the Square Mile'.","It has its own Lord Mayor and even its own police force."]},
+ {id:"stpauls",leg:2,t:"film",name:"St Paul's Cathedral",lat:51.5138,lng:-0.0984,q:"St Paul's Cathedral London",
+  mission:"Look up at the giant dome. Can you spot the golden ball and cross at the very top?",
+  quest:"Count the steps up to the front door. Then guess: how many steps to climb all the way to the top of the dome?",answer:"528 steps to the very top gallery!",
+  film:"<i>Prisoner of Azkaban</i>: a swirly stone staircase inside, called the Geometric Staircase, was filmed as the stairs up to Professor Trelawney's Divination class.",
+  img:"Harry Potter Prisoner of Azkaban divination staircase St Paul's",
+  fact:"The dome is one of the biggest in the world. Inside is the Whispering Gallery: whisper against the wall and a friend on the far side can hear you!",
+  trivia:["The old cathedral burned down in the Great Fire of London in 1666. Sir Christopher Wren designed this new one.","It took 35 years to build."]},
+ {id:"millennium",leg:2,t:"film",name:"Millennium Bridge",lat:51.5094,lng:-0.0985,q:"Millennium Bridge London",
+  mission:"Look down at the bridge floor for tiny paintings on old, flattened chewing gum. Find one!",
+  quest:"Wobble test: everyone march across in step, left-right-left. Does it wobble? (Engineers fixed it, so it shouldn't!)",
+  film:"<i>Half-Blood Prince</i>: Death Eaters swoop down the river as black smoke and twist this bridge until it snaps and crashes into the Thames.",
+  img:"Harry Potter Half-Blood Prince Millennium Bridge Death Eaters",
+  fact:"When it opened in 2000 it wobbled so much people called it the Wobbly Bridge. It was closed and fixed. An artist paints tiny pictures on the gum stuck to it.",
+  trivia:["Across the river is Shakespeare's Globe, a copy of the theatre where Shakespeare's plays were performed 400 years ago.","The Globe has a thatched straw roof. It's the only one allowed in London since the Great Fire."]},
+ // ---------- Leg 4 ----------
+ {id:"hinde",leg:3,t:"land",name:"The Golden Hinde",lat:51.5073,lng:-0.0910,q:"Golden Hinde London",
+  mission:"Walk east along the river past Shakespeare's Globe. Find the pirate-style ship squeezed into a tiny dock and count its cannon windows.",
+  quest:"Pirate talk: for the next two minutes, everyone can only speak like a pirate. Arrr! Whoever forgets first walks the (imaginary) plank.",
+  fact:"It's a full-size copy of the ship Sir Francis Drake sailed all the way around the world, over 440 years ago. Around 80 sailors squeezed on board.",
+  trivia:["On the way you passed Clink Street. A prison called The Clink stood there, which is why people call jail 'the clink'."]},
+ {id:"leaky",leg:3,t:"film",name:"The Leaky Cauldron (Stoney Street)",lat:51.5054,lng:-0.0911,q:"7 Stoney Street London",
+  mission:"Stand on Stoney Street under the railway bridge. Wait for a train to rumble over your head.",
+  quest:"Bus puzzle: the Knight Bus has 3 floors. A red London bus has 2. How many floors do one Knight Bus and two red buses have altogether?",answer:"7 floors. (3 + 2 + 2.)",
+  film:"<i>Prisoner of Azkaban</i>: the purple Knight Bus screeches to a stop here and drops Harry at the Leaky Cauldron, which was filmed at 7 Stoney Street.",
+  img:"Harry Potter Prisoner of Azkaban Knight Bus Leaky Cauldron Stoney Street",
+  fact:"Borough Market has been feeding Londoners for about 1,000 years. It's one of the oldest food markets in the city.",
+  trivia:["Southwark Cathedral, right next to the market, is London's oldest Gothic-style church."]},
+ {id:"londonbridge",leg:3,t:"land",name:"London Bridge",lat:51.5081,lng:-0.0879,q:"London Bridge London",
+  mission:"From the middle of the bridge, find Tower Bridge and the grey warship HMS Belfast.",
+  quest:"Sing 'London Bridge Is Falling Down' while you cross. Bonus point if a grown-up sings the loudest.",
+  fact:"Lots of people think Tower Bridge is London Bridge. It isn't! The old London Bridge was sold to an American in 1968 and moved all the way to Arizona.",
+  trivia:["For about 600 years, a London Bridge here had houses and shops built right on top of it.","There has been a bridge on this spot since Roman times, almost 2,000 years ago."]},
+ {id:"mice",leg:3,t:"tiny",name:"The Two Mice",lat:51.5111,lng:-0.0841,q:"Philpot Lane mice carving London",
+  mission:"On Philpot Lane, look up about two floors high on the corner building for two tiny mice fighting over a piece of cheese.",
+  quest:"Monument riddle: on the way you pass The Monument, a column 61 metres tall. It stands exactly 61 metres from the bakery where the Great Fire started. If the column fell over towards the bakery, where would the top land?",answer:"Right on the bakery spot on Pudding Lane!",
+  fact:"It's one of London's smallest statues. A legend says a builder blamed his friend for eating his lunch, but the real thieves were mice!",
+  trivia:["The Monument marks the Great Fire of London in 1666. It has 311 steps inside.","The Great Fire started in a bakery on Pudding Lane and burned for four days."]},
+ {id:"leadenhall",leg:3,t:"film",name:"Leadenhall Market (Diagon Alley)",lat:51.5128,lng:-0.0836,q:"Bull's Head Passage Leadenhall Market London",
+  mission:"Find Bull's Head Passage and the dark blue door. That was the door to the Leaky Cauldron!",
+  quest:"Final spell: Hagrid taps bricks to open Diagon Alley. Find a brick wall, tap three times with your pretend wand and say the magic words together. You did it!",
+  film:"<i>Philosopher's Stone</i>: Hagrid leads Harry through this market on the way to Diagon Alley. The blue door of a shop in Bull's Head Passage was the entrance to the Leaky Cauldron.",
+  img:"Harry Potter Philosopher's Stone Leadenhall Market Hagrid Leaky Cauldron door",
+  fact:"There has been a market here since the 1300s. Look up at the painted glass roof. It's like being inside a giant jewellery box.",
+  trivia:["Nearly 2,000 years ago, the Romans built their town, Londinium, right here. Their main market square was under your feet."]}
+];
+const EXTRAS = [
+ {id:"minalima",t:"film",name:"House of MinaLima",lat:51.5146,lng:-0.1353,q:"House of MinaLima 157 Wardour Street London",pts:15,
+  mission:"Go inside (it's free to look) and find the Marauder's Map. Can you spot a Hogwarts letter too?",
+  quest:"Design your own wax seal for a Hogwarts letter: one letter and one animal. Draw it on a napkin or in the air!",
+  film:"Two artists, Miraphora Mina and Eduardo Lima, drew the paper props for all eight films: the Marauder's Map, the Daily Prophet, Hogwarts letters and the Weasleys' joke-shop boxes. Their gallery shows the real designs.",
+  img:"MinaLima Marauder's Map Daily Prophet props Harry Potter",
+  fact:"Every newspaper in the films was made by hand with real stories inside, even though nobody could read them on screen.",
+  trivia:["Wardour Street has been home to film companies for about 100 years. Lots of movies get their sound and special effects made in this area."]},
+ {id:"palacetheatre",t:"film",name:"Palace Theatre",lat:51.5130,lng:-0.1293,q:"Palace Theatre Shaftesbury Avenue London",pts:15,
+  mission:"Find the giant poster of a boy curled up inside a golden nest of wings.",
+  quest:"Theatre count: how many different show posters can you spot on Shaftesbury Avenue? Pick which one you'd see next.",
+  film:"<i>Harry Potter and the Cursed Child</i> plays here. It's set 19 years later, when Harry is a grown-up with a son, Albus, starting at Hogwarts.",
+  img:"Harry Potter and the Cursed Child Palace Theatre London",
+  fact:"This red-brick theatre is more than 130 years old. In the show, people disappear and transform with real stage magic.",
+  trivia:["London's West End has around 40 big theatres, more than almost anywhere in the world.","Nearby, a play called The Mousetrap has been running since 1952. It's the longest-running play ever."]},
+ {id:"platform",t:"film",name:"Platform 9¾",lat:51.5322,lng:-0.1240,q:"Platform 9 3/4 King's Cross London",pts:25,
+  mission:"From Bank station, take the Northern line (Bank branch) four stops north to King's Cross St Pancras. Find the luggage trolley disappearing into the wall.",
+  quest:"Take a photo mid-run with your scarf flying, like you're just about to vanish through the wall.",
+  film:"<i>Philosopher's Stone</i>: Harry runs at the wall between platforms 9 and 10 to catch the Hogwarts Express. Next door, the red-brick St Pancras building appears in <i>Chamber of Secrets</i> when Harry and Ron chase the train in the flying car.",
+  img:"Harry Potter Platform 9 3/4 Philosopher's Stone scene",
+  fact:"The trolley photo is free, but the queue can be long, especially at weekends. There's a Harry Potter shop right beside it.",
+  trivia:["King's Cross station opened in 1852.","The London Underground is the oldest underground railway in the world. It opened in 1863."]}
+];
+const LEGS = [
+ {title:"Palace & Ministry",note:"Royal sights, two playgrounds, pelicans and the secret door to the Ministry of Magic. After Jubilee Gardens, cross back over the river on the Golden Jubilee footbridge.",tube:"Toilets: St James's Park playground, Jubilee Gardens and Trafalgar Square.",km:"≈ 3.5 km"},
+ {title:"West End Wizards",note:"A bus near-miss, Harry on his broom, and the lanes that look like Diagon Alley.",tube:"Tired legs? Covent Garden tube is at the end of this leg.",km:"≈ 1.6 km"},
+ {title:"Strand & St Paul's",note:"The goblin bank, a dragon on guard and the bridge the Death Eaters wrecked.",tube:"Shortcut: St Paul's tube station is right by the cathedral.",km:"≈ 2.4 km"},
+ {title:"River & City",note:"A pirate ship, the Knight Bus stop and the real Diagon Alley street.",tube:"Finish: Bank or Monument tube, both a few minutes away.",km:"≈ 1.8 km"}
+];
+const ROAM = [
+ {id:"bus",name:"A red double-decker bus",hint:"The Knight Bus is purple and has three floors. Red ones only have two!"},
+ {id:"phone",name:"A red phone box",hint:"Step inside and pretend to dial 62442 for MAGIC."},
+ {id:"cab",name:"A black taxi cab",hint:"Drivers learn every street in London by heart. It's called The Knowledge."},
+ {id:"plaque",name:"A round blue plaque",hint:"These mark where famous people lived. Who was it?"},
+ {id:"owl",name:"An owl",hint:"A picture, toy, statue or sign counts. Owl post!"},
+ {id:"guard",name:"A soldier in a bearskin hat",hint:"Look near the Palace."}
+];
+const PTS = {film:15,land:10,tiny:10,play:10};
+const RANKS = [[0,"First-Year Explorer"],[70,"Second-Year Seeker"],[140,"Prefect of the Pavements"],[220,"Head of House"],[300,"Order of Merlin, First Class"]];
+const KEY = "wizard-hunt-v2";
+let state = {stops:{},quests:{},roam:{},extras:{}};
+try{const s=JSON.parse(localStorage.getItem(KEY)||"null"); if(s) state=Object.assign(state,s);}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+const enc = s => encodeURIComponent(s).replace(/%20/g,"+");
+const mapsLink = s => "https://www.google.com/maps/search/?api=1&query="+enc(s.q);
+const svLink = s => `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${s.lat},${s.lng}`;
+const imgLink = q => "https://www.google.com/search?tbm=isch&q="+enc(q);
+const tagName = {film:"Wizarding film spot",land:"London landmark",tiny:"Tiny treasure",play:"Play break"};
+S.forEach((s,i)=>s.n=i+1);
+
+function cardHTML(s,label,pts,extra){
+  return `<div class="num">${label}</div><div class="body">
+    <span class="tag t-${s.t}">${extra?"Bonus":tagName[s.t]} · ${pts} pts</span>
+    <h3>${s.name}</h3>
+    <div class="box mission"><b>Your mission</b>${s.mission}</div>
+    <div class="box quest"><b>Quest</b>${s.quest}
+      ${s.answer?`<details><summary>Show answer</summary><p>${s.answer}</p></details>`:""}
+      ${extra?"":`<label style="display:flex;gap:8px;align-items:center;margin-top:8px;font-weight:800;color:var(--quest);cursor:pointer"><input type="checkbox" id="q-${s.id}" style="width:20px;height:20px;accent-color:var(--quest)"> Quest done (+5)</label>`}
+    </div>
+    ${s.film?`<p class="film"><b>In the films:</b> ${s.film}</p>`:""}
+    <p><b>Fun fact:</b> ${s.fact}</p>
+    <div class="lbl">London trivia</div>
+    <ul class="trivia">${s.trivia.map(t=>`<li>${t}</li>`).join("")}</ul>
+    <div class="links">
+      <a target="_blank" rel="noopener" href="${mapsLink(s)}">Directions</a>
+      <a target="_blank" rel="noopener" href="${svLink(s)}">See it now</a>
+      ${s.img?`<a target="_blank" rel="noopener" href="${imgLink(s.img)}">Film scene</a>`:`<a target="_blank" rel="noopener" href="${imgLink(s.name+' London')}">Photos</a>`}
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center"><button type="button" class="found-btn" id="btn-${s.id}" aria-pressed="false">We found it!</button>${extra?"":`<a href="#map-top" class="note" style="font-weight:800">Back to map ↑</a>`}</div>
+  </div><span class="stamp" aria-hidden="true">Found</span>`;
+}
+
+const legsEl = document.getElementById("legs");
+LEGS.forEach((L,i)=>{
+  const stops = S.filter(s=>s.leg===i);
+  const pts = stops.map(s=>s.lat+","+s.lng);
+  const route = `https://www.google.com/maps/dir/?api=1&origin=${pts[0]}&destination=${pts[pts.length-1]}&waypoints=${pts.slice(1,-1).join("|")}&travelmode=walking`;
+  const sec = document.createElement("section"); sec.className="leg";
+  sec.innerHTML = `<div class="leghead"><h2>Leg ${i+1}: ${L.title}</h2><span class="mono">Stops ${stops[0].n}–${stops[stops.length-1].n} · ${L.km}</span></div>
+   <p class="legnote">${L.note} ${L.tube}</p>
+   <a class="leglink" target="_blank" rel="noopener" href="${route}">Open this leg as a walking route in Google Maps →</a>
+   <div class="cards"></div>`;
+  const cards = sec.querySelector(".cards");
+  stops.forEach(s=>{
+    const c = document.createElement("article"); c.className="card"; c.id="stop-"+s.id;
+    c.innerHTML = cardHTML(s,s.n,PTS[s.t],false);
+    c.querySelector(".found-btn").addEventListener("click",()=>{state.stops[s.id]=!state.stops[s.id];save();render();});
+    c.querySelector("#q-"+s.id).addEventListener("change",e=>{state.quests[s.id]=e.target.checked;save();render();});
+    cards.appendChild(c);
+  });
+  legsEl.appendChild(sec);
+});
+
+const exEl = document.getElementById("extras");
+EXTRAS.forEach((s,i)=>{
+  const c = document.createElement("article"); c.className="card"; c.id="stop-"+s.id;
+  c.innerHTML = cardHTML(s,"★",s.pts,true);
+  c.querySelector(".found-btn").addEventListener("click",()=>{state.extras[s.id]=!state.extras[s.id];save();render();});
+  exEl.appendChild(c);
+});
+
+const roamEl = document.getElementById("roam");
+ROAM.forEach(r=>{
+  const l=document.createElement("label");
+  l.innerHTML=`<input type="checkbox" id="roam-${r.id}"><span><b>${r.name}</b><small>${r.hint}</small></span>`;
+  l.querySelector("input").addEventListener("change",e=>{state.roam[r.id]=e.target.checked;save();render();});
+  roamEl.appendChild(l);
+});
+
+(function(){
+  const svg=document.getElementById("map"), NS="http://www.w3.org/2000/svg";
+  const minLat=51.4995,maxLat=51.5160,minLng=-0.1430,maxLng=-0.0815;
+  const kx=Math.cos(51.508*Math.PI/180);
+  const W=1000,H=400,pad=26;
+  const sx=(W-2*pad)/((maxLng-minLng)*kx), sy=(H-2*pad)/(maxLat-minLat), k=Math.min(sx,sy);
+  const ox=(W-(maxLng-minLng)*kx*k)/2, oy=(H-(maxLat-minLat)*k)/2;
+  const P=(lat,lng)=>[ox+(lng-minLng)*kx*k, oy+(maxLat-lat)*k];
+  const river=[[51.4985,-0.1250],[51.5008,-0.1222],[51.5063,-0.1205],[51.5087,-0.1170],[51.5097,-0.1043],[51.5092,-0.0975],[51.5082,-0.0920],[51.5072,-0.0860],[51.5056,-0.0760]];
+  const el=(n,a)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);return e;};
+  const pathOf=pts=>pts.map((p,i)=>(i?"L":"M")+P(p[0],p[1]).map(v=>v.toFixed(1)).join(" ")).join(" ");
+  svg.appendChild(el("path",{d:pathOf(river),fill:"none",stroke:"var(--river)","stroke-width":22,"stroke-linecap":"round","stroke-linejoin":"round"}));
+  const rl=P(51.5049,-0.1125); const t=el("text",{x:rl[0],y:rl[1]+36,"font-family":"var(--f-display)","font-size":"16",fill:"var(--muted)"}); t.textContent="River Thames"; svg.appendChild(t);
+  svg.appendChild(el("path",{d:pathOf(S.map(s=>[s.lat,s.lng])),fill:"none",stroke:"var(--route)","stroke-width":2.5,"stroke-dasharray":"2 7","stroke-linecap":"round"}));
+  [["Start",S[0],30],["Finish",S[S.length-1],-22]].forEach(([txt,s,dy])=>{const p=P(s.lat,s.lng);const a=el("a",{href:"#stop-"+s.id});a.setAttributeNS("http://www.w3.org/1999/xlink","xlink:href","#stop-"+s.id);const e=el("text",{x:p[0],y:p[1]+dy,"text-anchor":"middle","font-family":"var(--f-body)","font-weight":"800","font-size":"13",fill:"var(--gold)",style:"cursor:pointer"});e.textContent=txt;a.appendChild(e);svg.appendChild(a);});
+  S.forEach(s=>{
+    const p=P(s.lat,s.lng), g=el("a",{class:"dot",id:"dot-"+s.id,href:"#stop-"+s.id,"aria-label":"Stop "+s.n+": "+s.name});
+    g.setAttributeNS("http://www.w3.org/1999/xlink","xlink:href","#stop-"+s.id);
+    g.appendChild(el("circle",{cx:p[0],cy:p[1],r:14}));
+    const tx=el("text",{x:p[0],y:p[1]+.5}); tx.textContent=s.n; g.appendChild(tx);
+    g.addEventListener("click",e=>{const t=document.getElementById("stop-"+s.id);if(!t)return;e.preventDefault();try{t.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});}catch(_){t.scrollIntoView(true);}});
+    svg.appendChild(g);
+  });
+})();
+
+function render(){
+  let found=0,pts=0;
+  S.forEach(s=>{
+    const on=!!state.stops[s.id]; if(on){found++;pts+=PTS[s.t];}
+    document.getElementById("stop-"+s.id).classList.toggle("found",on);
+    const b=document.getElementById("btn-"+s.id); b.textContent=on?"Found it ✓":"We found it!"; b.setAttribute("aria-pressed",on);
+    document.getElementById("dot-"+s.id).classList.toggle("found",on);
+    const q=!!state.quests[s.id]; document.getElementById("q-"+s.id).checked=q; if(q)pts+=5;
+  });
+  EXTRAS.forEach(s=>{
+    const on=!!state.extras[s.id]; if(on)pts+=s.pts;
+    document.getElementById("stop-"+s.id).classList.toggle("found",on);
+    const b=document.getElementById("btn-"+s.id); b.textContent=on?"Found it ✓":"We found it!"; b.setAttribute("aria-pressed",on);
+  });
+  ROAM.forEach(r=>{const on=!!state.roam[r.id]; document.getElementById("roam-"+r.id).checked=on; if(on)pts+=5;});
+  document.getElementById("foundCount").textContent=found;
+  document.getElementById("totalCount").textContent=S.length;
+  document.getElementById("points").textContent=pts;
+  document.getElementById("meter").style.width=(found/S.length*100)+"%";
+  let rank=RANKS[0][1]; RANKS.forEach(([p,n])=>{if(pts>=p)rank=n;});
+  if(found===S.length) rank="Hunt complete! Order of Merlin";
+  document.getElementById("rank").textContent=rank;
+}
+render();
+
+const cb=document.getElementById("confirmBox");
+document.getElementById("resetBtn").addEventListener("click",()=>{cb.hidden=false;});
+document.getElementById("noReset").addEventListener("click",()=>{cb.hidden=true;});
+document.getElementById("yesReset").addEventListener("click",()=>{state={stops:{},quests:{},roam:{},extras:{}};save();render();cb.hidden=true;window.scrollTo({top:0});});
+</script>
+
+</body>
+</html>
